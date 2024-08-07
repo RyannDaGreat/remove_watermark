@@ -12,6 +12,10 @@ It's very fast, and runs on CPU. It doesn't use any machine learning. It's not p
 
 3. If you want to get started right away, import `remove_watermark.py` and run `remove_watermark.demo_remove_watermark()`
 
+## Dependencies
+
+I haven't included a `requirements.txt` file yet, but the only special library you'll need is called "rp" - which can be installed via `pip install rp`. When running this code, other needed packages will be installed on the fly as you need them. You will also need to install FFmpeg.
+
 ## Extracting the Watermark
 
 The `make_watermark_exr.py` uses special video clips where the background is easy to predict. Here are some video URLs you can use to crack the watermark:
@@ -24,10 +28,6 @@ The `make_watermark_exr.py` uses special video clips where the background is eas
 - https://www.shutterstock.com/video/clip-1064430046-green-screen-moving-colorful-frame
 
 These files are also found in the `watermark_extraction/` folder. See `make_watermark_exr.py` for how that folder is used.
-
-## Dependencies
-
-I haven't included a `requirements.txt` file yet, but the only special library you'll need is called "rp" - which can be installed via `pip install rp`. When running this code, other needed packages will be installed on the fly as you need them. You will also need to install FFmpeg.
 
 ## Examples
 Below are two examples of the watermark removal results. The top half is with the watermark removed, and the bottom half is the original.
