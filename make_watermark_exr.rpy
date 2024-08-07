@@ -1,10 +1,15 @@
 if not 'cracker_video' in dir():
+    #Use one of these
     cracker_video=load_video('shutter_cracker.webm',use_cache=True)
+    cracker_video=as_numpy_array(load_images('watermark_creation',use_cache=True))
+    
     cracker_video=cracker_video/255
-    cracker_colors=cracker_video[:,60:150,120:480].mean((1,2))
+    cracker_colors=cracker_video[:,170:180,120:480]
+    #display_image_slideshow(cracker_colors)
+    cracker_colors=cracker_colors.mean((1,2))
     cracker_background = cracker_video + 0
     cracker_background[:, 180:260, 120:480, :] = cracker_colors[:,None,None,:]
-
+    
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -80,7 +85,7 @@ def get_rgba_overlay(background_images, composite_images):
         return loss
 
     # Run the optimizer
-    num_iter = 500
+    num_iter = 1000
     for _ in tqdm(range(num_iter)):
         optimizer.step(closure)
 
@@ -94,16 +99,19 @@ def get_rgba_overlay(background_images, composite_images):
 # Note: Ensure the background_images and composite_images are scaled between 0 and 1 before passing them to this function.
 #
 #ans=get_rgba_overlay(cracker_background[::200],cracker_video[::200])
-ans=get_rgba_overlay(cracker_background[::50],cracker_video[::50])
+#ans=get_rgba_overlay(cracker_background[::50],cracker_video[::50])
 #ans=get_rgba_overlay(cracker_background[::10],cracker_video[::10])
+ans=get_rgba_overlay(cracker_background,cracker_video)
 #ans=get_rgba_overlay(cracker_background[:2],cracker_video[:2])
 #######
-rgb=ans[:,:,0]
-alpha=ans[:,:,1]
-alpha[alpha<.03]=0#Thesholding it because of innacuracies...
+rgb=ans[:,:,0]+0
+alpha=ans[:,:,1]+0
+alpha[alpha<.0205]=0#Thesholding it because of innacuracies...
+
 rgb=as_rgb_image(rgb)
 rgba=with_alpha_channel(rgb,alpha)
 output=np.zeros_like(rgba)
 output[180:260, 120:480, :]=rgba[180:260, 120:480, :]
 save_openexr_image(output,'watermark.exr')
 display_alpha_image(output,tile_size=100)
+display_image(full_range(get_alpha_channel(output)))
