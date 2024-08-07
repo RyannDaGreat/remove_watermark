@@ -1,7 +1,7 @@
 if not 'cracker_video' in dir():
     #Use one of these
-    cracker_video=load_video('shutter_cracker.webm',use_cache=True)
-    cracker_video=as_numpy_array(load_images('watermark_creation',use_cache=True))
+    cracker_video=load_video('watermark_extraction/shutter_cracker.webm',use_cache=True)
+    cracker_video=as_numpy_array(load_images('watermark_extraction',use_cache=True))
     
     cracker_video=cracker_video/255
     cracker_colors=cracker_video[:,170:180,120:480]
