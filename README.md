@@ -24,7 +24,7 @@ You can also install this package via pip.
 Simply run 
 ```
 git clone https://github.com/RyannDaGreat/remove_watermark.git
-cd remove_watermark.git
+cd remove_watermark
 pip install -e .
 ```
 
