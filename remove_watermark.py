@@ -166,3 +166,6 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
             "bold",
         )
         display_video(analy_video)
+
+if __name__ == "__main__":
+    demo_remove_watermark()
