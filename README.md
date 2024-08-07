@@ -2,6 +2,8 @@
 
 This repository contains code to help remove watermarks from videos. For Shutterstock videos, it's ready-to-go out of the box - good for datasets such as WebVid.
 
+It's very fast, and runs on CPU. It doesn't use any machine learning. It's not perfect, but generally does a very good job. It assumes the watermarks are transparent and uses inverse alpha-blending to remove them.
+
 ## Getting Started
 
 1. Use the `make_watermark_exr.py` file to extract the `watermark.exr` file - which is the watermark overlay. If you're trying to remove watermarks from Shutterstock videos (aka WebVid), you can skip this step as we've already included a `watermark.exr` file in this repo.
@@ -10,7 +12,7 @@ This repository contains code to help remove watermarks from videos. For Shutter
 
 3. If you want to get started right away, import `remove_watermark.py` and run `remove_watermark.demo_remove_watermark()`
 
-## Cracking the Watermark
+## Extracting the Watermark
 
 The `make_watermark_exr.py` uses special video clips where the background is easy to predict. Here are some video URLs you can use to crack the watermark:
 
