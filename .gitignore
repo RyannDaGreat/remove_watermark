@@ -8,3 +8,4 @@ old/comparison_videos__
 *.un~
 *.pyc
 *.swp
+remove_watermark.egg-info

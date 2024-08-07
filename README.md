@@ -2,9 +2,14 @@
 
 This repository contains code to help remove watermarks from videos. For Shutterstock videos, it's ready-to-go out of the box - good for datasets such as WebVid.
 
-It's very fast, and runs on CPU. It doesn't use any machine learning. It's not perfect, but generally does a very good job. It assumes the watermarks are transparent and uses inverse alpha-blending to remove them.
+It's very fast, and runs on CPU. It doesn't use any machine learning. It's not perfect, but generally does a very good job. It assumes the watermarks are transparent and uses template matching to find the watermarks then inverse alpha-blending to remove them.
+Unlike other watermark removal methods, this does not use inpainting - letting it retain more information than many other available implementations out there.
 
 ## Getting Started
+
+### Simple Usage
+
+You can simply git clone this repo, then use the files in it.
 
 1. Use the `make_watermark_exr.py` file to extract the `watermark.exr` file - which is the watermark overlay. If you're trying to remove watermarks from Shutterstock videos (aka WebVid), you can skip this step as we've already included a `watermark.exr` file in this repo.
 
@@ -12,9 +17,24 @@ It's very fast, and runs on CPU. It doesn't use any machine learning. It's not p
 
 3. If you want to get started right away, import `remove_watermark.py` and run `remove_watermark.demo_remove_watermark()`
 
-## Dependencies
+### Installation
 
-I haven't included a `requirements.txt` file yet, but the only special library you'll need is called "rp" - which can be installed via `pip install rp`. When running this code, other needed packages will be installed on the fly as you need them. You will also need to install FFmpeg.
+You can also install this package via pip.
+
+Simply run `pip install rp git+https://github.com/RyannDaGreat/remove_watermark.git`
+
+You may also need to run `brew install ffmpeg` or `sudo apt install ffmpeg`
+
+I haven't included a `requirements.txt` file yet, but the only special library you'll need is called "rp" - which can be installed via `pip install rp` or the above command. When running this code, other needed packages will be installed on the fly as you need them.
+
+### Usage
+```
+ >>> from remove_watermark import remove_watermark
+ >>> import rp
+ >>> video = rp.load_video('webvid/stock-footage-centennial-olympic-park-in-downtown-atlanta-georgia-water-fountains.mp4')
+ >>> video_without_watermark = remove_watermark(video)
+ >>> rp.save_video_mp4(video_without_watermark, 'output.mp4')
+```
 
 ## Extracting the Watermark
 
@@ -29,7 +49,8 @@ The `make_watermark_exr.py` uses special video clips where the background is eas
 
 These files are also found in the `watermark_extraction/` folder. See `make_watermark_exr.py` for how that folder is used.
 
-## Examples
+## Example Outputs
+
 Below are two examples of the watermark removal results. The top half is with the watermark removed, and the bottom half is the original.
 
 ![Friends Eat Watermelon Happily and Enjoy Go on a Picnic](assets/stock-footage-friends-eat-watermelon-happily-and-enjoy-go-on-a-picnic.gif)
