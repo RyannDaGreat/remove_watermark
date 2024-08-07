@@ -26,8 +26,8 @@ while True:
         
         return background
     #video=load_video('shutter_cracker.webm',use_cache=True)/255
-    video=load_video('/Users/ryan/Downloads/vid2.mp4',use_cache=True)/255
-    video=load_video(random_element(test_videos),use_cache=True)/255
+    # video=load_video('/Users/ryan/Downloads/vid2.mp4',use_cache=True)/255
+    video=load_video(random_element(test_videos),use_cache=False)/255
     #video=load_video(ans,use_cache=False)/255
     #video=video[::10]
     video=as_numpy_array(resize_list(video,length=60))
@@ -113,6 +113,66 @@ while True:
     best_watermark=np.roll(np.roll(watermark,best_x_shift,axis=1),best_y_shift,axis=0)
 
 
+
+    # #An attmept to scale the alpha by the factor that minimizes the toal gradient of the recovered image
+    # #Idk if it works well...seems to be questionable. I'll just disable it for now.
+    # factor=.3
+    # alpha_mults=np.linspace(factor,1/factor)
+    # best_alpha_mult=1
+    # def get_grad(mult):
+    #     alpha=get_image_alpha(best_watermark)
+    #     alpha=np.clip(alpha,0,1)
+    #     watermark=with_alpha_channel(best_watermark,alpha*mult)
+    #     recovered=recover_background(avg_frame[None],watermark)[0]
+    #     edges=np.diff(np.diff(recovered,axis=0),axis=1)**2*100
+    #     edge_mean=edges.mean()
+    #     print(edge_mean,mult)
+    #     display_image(edges)
+    #     return edge_mean
+    # best_alpha_mult=min(alpha_mults,key=get_grad)
+    # fansi_print(best_alpha_mult,'green')
+    # best_watermark=with_alpha_channel(best_watermark,get_image_alpha(best_watermark)*best_alpha_mult)
+    
+    
+
+    # best_x_shift=None
+    # best_y_shift=None
+    # shift_range=30
+    # shifts=range(-shift_range,shift_range+1)
+    # for x_shift in shifts:
+    #     for y_shift in shifts:
+    #         #shifted_watermark=crop_image(shift_image(watermark,x=x_shift,y=y_shift,allow_growth=False),*get_image_dimensions(avg_frame),origin='bottom right')
+    #         shifted_watermark=np.roll(np.roll(watermark,x_shift,axis=1),y_shift,axis=0)
+    #         
+    #         # Make calculatoins faster by only using relevant regions
+    #         h, w = get_image_dimensions(avg_frame)
+    #         top   =     180 - shift_range
+    #         bot   = h -  80 + shift_range
+    #         left  =     120 - shift_range
+    #         right = w - 120 + shift_range
+    #
+    #         recovered_frame = recover_background(
+    #             avg_frame[top:bot, left:right][None],
+    #             shifted_watermark[top:bot, left:right],
+    #         )[0]
+    #         
+    #         #SLOW!            
+    #         #edges=sobel_edges(recovered_frame)#TODO:Make faster
+    #         
+    #         edges=recovered_frame
+    #         edges=np.diff(np.diff(edges,axis=0),axis=1)**2*100
+    #         
+    #
+    #         edges_mean=edges.mean()
+    #         if edges_mean<best_edges_mean:
+    #             best_edges_mean=edges_mean
+    #             best_watermark=shifted_watermark
+    #             best_x_shift=x_shift
+    #             best_y_shift=y_shift
+    #         
+    #         print(x_shift,y_shift,edges.mean())
+    #         #display_image(edges)
+    #         #input('>>>')
 
     
     recovered=recover_background(video,best_watermark)
