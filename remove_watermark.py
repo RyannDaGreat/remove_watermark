@@ -12,26 +12,13 @@ def get_watermark_image():
 
 def remove_watermark(video):
     def recover_background(composite_images, rgba_watermark):
-        # Ensure the images are in the correct float32 format ranging from 0 to 1
-        composite_images = composite_images.astype(np.float32)
-        rgba_watermark = rgba_watermark.astype(np.float32)
-        
         # Extract RGB and Alpha components of the watermark
-        rgb_watermark = rgba_watermark[:, :, :3]
-        alpha_watermark = rgba_watermark[:, :, 3]
-        
-        # Expand alpha to work across color channels
-        alpha_watermark = np.expand_dims(alpha_watermark, axis=-1)
+        watermark_rgb = rgba_watermark[:, :, :3]
+        watermark_alpha = rgba_watermark[:, :, 3:]
         
         # Calculate the background image using the derived formula
         # Use np.clip to ensure the resulting pixel values are still in the range [0, 1]
-        background = (composite_images - alpha_watermark * rgb_watermark) / (1 - alpha_watermark)
-
-        # #Do the above line in mx+b form - that way if we need to we can refactor this to export m and b and do calculation on the GPU.
-        # inv_alpha = 1 - alpha_watermark
-        # m = -alpha_watermark / inv_alpha
-        # b = 1 / inv_alpha
-        # background = m * video + b
+        background = (composite_images - watermark_alpha * watermark_rgb) / (1 - watermark_alpha)
 
         background = np.clip(background, 0, 1)
         
@@ -98,18 +85,29 @@ def demo_remove_watermark():
     test_videos=shuffled(test_videos)
 
     while test_videos:
-        tic()
         video_path = test_videos.pop()
 
         fansi_print("Loading video from " + video_path, "green", "bold")
         video = load_video(video_path, use_cache=False)
-        video = as_numpy_array(resize_list(video, length=60))
+        video = as_numpy_array(resize_list(video, length=16))
 
+        tic()
         recovered = remove_watermark(video)
         ptoc()
 
-        #analy_video=vertically_concatenated_videos(recovered,video)
-        # analy_video=labeled_images(analy_video,'dx=%i   dy=%i'%(best_x_shift,best_y_shift))
+        analy_video=vertically_concatenated_videos(recovered,video)
+        
+        #The way I restructured the code we can't label the videos with shifts anymore
+        #analy_video=labeled_images(analy_video,'dx=%i   dy=%i'%(best_x_shift,best_y_shift))
 
-        #save_video_mp4(analy_video,get_unique_copy_path('comparison_videos/comparison_video.mp4'),framerate=30)
-        #display_video(analy_video)
+        fansi_print(
+            "Saved video at "
+            + save_video_mp4(
+                analy_video,
+                get_unique_copy_path("comparison_videos/comparison_video.mp4"),
+                framerate=30,
+            ),
+            "green",
+            "bold",
+        )
+        display_video(analy_video)
