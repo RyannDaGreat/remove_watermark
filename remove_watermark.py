@@ -158,6 +158,7 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
                             video_path,
                             include_file_extension=False,
                         ),
+                        "mp4",
                     ),
                 ),
                 framerate=30,
