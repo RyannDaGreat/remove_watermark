@@ -68,5 +68,5 @@ while True:
     recovered=recover_background(video,best_watermark)
     analy_video=vertically_concatenated_videos(recovered,video)
     analy_video=labeled_images(analy_video,'dx=%i   dy=%i'%(best_x_shift,best_y_shift))
-    save_video_mp4(analy_video,get_unique_copy_path('comparison_video.mp4'),framerate=30)
+    save_video_mp4(analy_video,get_unique_copy_path('comparison_videos/comparison_video.mp4'),framerate=30)
     display_video(analy_video)
