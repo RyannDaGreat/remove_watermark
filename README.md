@@ -28,3 +28,10 @@ These files are also found in the `watermark_extraction/` folder. See `make_wate
 ## Dependencies
 
 I haven't included a `requirements.txt` file yet, but the only special library you'll need is called "rp" - which can be installed via `pip install rp`. When running this code, other needed packages will be installed on the fly as you need them. You will also need to install FFmpeg.
+
+## Examples
+Below are two examples of the watermark removal results. The top half is with the watermark removed, and the bottom half is the original.
+
+![Friends Eat Watermelon Happily and Enjoy Go on a Picnic](assets/stock-footage-friends-eat-watermelon-happily-and-enjoy-go-on-a-picnic.gif)
+![Closeup of Chef Preparing and Throwing Vegetable Mix on Frying Pan on Fire Preparation Fresh](assets/stock-footage-closeup-of-chef-preparing-and-throwing-vegetable-mix-on-frying-pan-on-fire-preparation-fresh.gif)
+
