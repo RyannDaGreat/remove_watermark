@@ -28,9 +28,12 @@ while True:
     #video=video[::10]
     video=as_numpy_array(resize_list(video,length=60))
     #video=video[as_numpy_array(resize_list(range(len(video)),length=60))]
-    watermark=load_image('watermark.exr')
+    watermark=load_image('watermark.exr',use_cache=True)
     
     avg_frame=video.mean(0)
+    
+    watermark=crop_image(watermark,*get_image_dimensions(avg_frame)) #Sometimes not a perfect match...
+    
     best_watermark=None
     best_edges_mean=10000
     best_x_shift=None
@@ -39,7 +42,8 @@ while True:
     shifts=range(-shift_range,shift_range+1)
     for x_shift in shifts:
         for y_shift in shifts:
-            shifted_watermark=crop_image(shift_image(watermark,x=x_shift,y=y_shift,allow_growth=False),*get_image_dimensions(avg_frame),origin='bottom right')
+            #shifted_watermark=crop_image(shift_image(watermark,x=x_shift,y=y_shift,allow_growth=False),*get_image_dimensions(avg_frame),origin='bottom right')
+            shifted_watermark=np.roll(np.roll(watermark,x_shift,axis=1),y_shift,axis=0)
             recovered_frame=recover_background(avg_frame[None],shifted_watermark)[0]
             
             #SLOW!            
@@ -61,8 +65,8 @@ while True:
             #input('>>>')
     
     
-    #recovered=recover_background(video,best_watermark)
-    #analy_video=vertically_concatenated_videos(recovered,video)
-    #analy_video=labeled_images(analy_video,'dx=%i   dy=%i'%(best_x_shift,best_y_shift))
-    #save_video_mp4(analy_video,get_unique_copy_path('comparison_video.mp4'),framerate=30)
-    #display_video(analy_video)
+    recovered=recover_background(video,best_watermark)
+    analy_video=vertically_concatenated_videos(recovered,video)
+    analy_video=labeled_images(analy_video,'dx=%i   dy=%i'%(best_x_shift,best_y_shift))
+    save_video_mp4(analy_video,get_unique_copy_path('comparison_video.mp4'),framerate=30)
+    display_video(analy_video)
