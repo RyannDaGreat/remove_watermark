@@ -1,3 +1,5 @@
+from rp import *
+
 if not 'cracker_video' in dir():
     #Use one of these
     cracker_video=load_video('watermark_extraction/shutter_cracker.webm',use_cache=True)
