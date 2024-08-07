@@ -100,6 +100,7 @@ ans=get_rgba_overlay(cracker_background[::50],cracker_video[::50])
 #######
 rgb=ans[:,:,0]
 alpha=ans[:,:,1]
+alpha[alpha<.03]=0#Thesholding it because of innacuracies...
 rgb=as_rgb_image(rgb)
 rgba=with_alpha_channel(rgb,alpha)
 output=np.zeros_like(rgba)
