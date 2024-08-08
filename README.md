@@ -28,7 +28,7 @@ Simply run
 <!-- pip install -e . -->
 <!-- ``` -->
 ```
-pip install rp git+https://github.com/RyannDaGreat/remove_watermark.git
+git clone https://github.com/RyannDaGreat/remove_watermark.git $(python -c "import site; print(site.getsitepackages()[0])")/remove_watermark
 ```
 
 You may also need to run `brew install ffmpeg` or `sudo apt install ffmpeg`
