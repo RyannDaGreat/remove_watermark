@@ -117,11 +117,15 @@ def get_rgba_overlay(background_images, composite_images):
     composite_module.do_foreground_sigmoid=False
     composite_module._foreground.data[180:260, 120:480, :] = full_range(composite_module.get_foreground()[180:260, 120:480, :]) 
     num_iter = 300
-    for _ in tqdm(range(num_iter)):        optimizer.step(closure)
+    for _ in tqdm(range(num_iter)):  
+        composite_module._foreground.data[180:260, 120:480, :] = full_range(composite_module.get_foreground()[180:260, 120:480, :]) 
+        optimizer.step(closure)
 
-    num_iter = 500
+    num_iter = 1000
     composite_module.do_alpha_sigmoid=False
-    for _ in tqdm(range(num_iter)):        optimizer.step(closure)
+    for _ in tqdm(range(num_iter)):  
+        composite_module._foreground.data[180:260, 120:480, :] = full_range(composite_module.get_foreground()[180:260, 120:480, :]) 
+        optimizer.step(closure)
 
     # Extract the parameters and form the final RGBA image
     foreground = composite_module.get_foreground().cpu().detach().numpy()
@@ -146,6 +150,12 @@ rgba=with_alpha_channel(rgb,alpha)
 output=np.zeros_like(rgba)
 output[180:260, 120:480, :]=rgba[180:260, 120:480, :]
 #output=rgba
+
+
+output=crop_image_zeros(output)
+output[:,:,:3]=full_range(output[:,:,:3]) #Make higher contrast 
 save_openexr_image(output,'watermark.exr')
+
+
 display_alpha_image(output,tile_size=100)
 display_image(full_range(get_alpha_channel(output)))
