@@ -22,10 +22,13 @@ You can simply git clone this repo, then use the files in it.
 You can also install this package via pip.
 
 Simply run 
+<!-- ``` -->
+<!-- git clone https://github.com/RyannDaGreat/remove_watermark.git -->
+<!-- cd remove_watermark -->
+<!-- pip install -e . -->
+<!-- ``` -->
 ```
-git clone https://github.com/RyannDaGreat/remove_watermark.git
-cd remove_watermark
-pip install -e .
+pip install rp git+https://github.com/RyannDaGreat/remove_watermark.git
 ```
 
 You may also need to run `brew install ffmpeg` or `sudo apt install ffmpeg`
