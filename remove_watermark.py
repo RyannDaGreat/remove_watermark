@@ -135,10 +135,11 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
         video_path = test_videos.pop()
 
         fansi_print("Loading video from " + video_path, "green", "bold")
-        video = load_video(video_path, use_cache=False)
-        video = as_numpy_array(resize_list(video, length=16))
-
         tic()
+        video = load_video(video_path, use_cache=False)
+        video = as_numpy_array(resize_list(video, length=60))
+
+        ptoctic()
         recovered = remove_watermark(video)
         ptoc()
 
