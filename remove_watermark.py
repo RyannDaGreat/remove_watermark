@@ -1,7 +1,48 @@
 import numpy as np
 from rp import *
 
+try:
+    import torch
+except ImportError:
+    pass
+
 __all__ = ["remove_watermark", "demo_remove_watermark"]
+
+
+def _is_uint8(x):
+    if   is_numpy_array (x): return x.dtype == np.uint8
+    elif is_torch_tensor(x): return x.dtype == torch.uint8
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
+
+
+def _fft2(x):
+    if   is_numpy_array (x): return    np.fft.fft2(x)
+    elif is_torch_tensor(x): return torch.fft.fft2(x)
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
+
+
+def _ifft2(x):
+    if   is_numpy_array (x): return    np.fft.ifft2(x)
+    elif is_torch_tensor(x): return torch.fft.ifft2(x)
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
+
+
+def _fftshift(x):
+    if   is_numpy_array (x): return    np.fft.fftshift(x)
+    elif is_torch_tensor(x): return torch.fft.fftshift(x)
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
+
+
+def _clip(x, min_val, max_val):
+    if   is_numpy_array (x): return    np.clip (x, min_val, max_val)
+    elif is_torch_tensor(x): return torch.clamp(x, min_val, max_val)
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
+
+
+def _roll(x, shift, dims):
+    if   is_numpy_array (x): return    np.roll(x, shift, axis=dims)
+    elif is_torch_tensor(x): return torch.roll(x, shift, dims=dims)
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
 
 
 @memoized
@@ -16,7 +57,7 @@ def _get_watermark_image():
 def remove_watermark(video):
     """Removes watermark from a video.
 
-    Given an RGB video as a numpy array in BHW3 form, where B is num_frames,
+    Given an RGB video as a NumPy array or PyTorch tensor in BHW3 form, where B is num_frames,
     H and W are height and width, and 3 (channels) is for RGB. It assumes
     it's a watermarked video - matching the watermark found in watermark.exr
     (in the same folder as this python file). Currently, that watermark is
@@ -24,10 +65,10 @@ def remove_watermark(video):
     also found in the same folder as this python file.
 
     Args:
-        video: A numpy array representing the video frames in BHW3 format.
+        video: A NumPy array or PyTorch tensor representing the video frames in BHW3 format.
 
     Returns:
-        A numpy array of the same shape as the input video, with the
+        A NumPy array or PyTorch tensor of the same shape and type as the input video, with the
         watermark removed, and floating point pixel values between 0 and 1.
 
     Notes:
@@ -49,10 +90,9 @@ def remove_watermark(video):
         watermark_alpha = rgba_watermark[:, :, 3:]
 
         # Calculate the background image using the derived formula
-        # Use np.clip to ensure the resulting pixel values are still in the range [0, 1]
+        # Use _clip to ensure the resulting pixel values are still in the range [0, 1]
         background = (composite_images - watermark_alpha * watermark_rgb) / (1 - watermark_alpha)
-
-        background = np.clip(background, 0, 1)
+        background = _clip(background, 0, 1)
 
         return background
 
@@ -62,15 +102,15 @@ def remove_watermark(video):
             assert is_a_matrix(img2)
 
             # Compute the FFT of both images
-            fft1 = np.fft.fft2(img1)
-            fft2 = np.fft.fft2(img2, img1.shape)
+            fft1 = _fft2(img1)
+            fft2 = _fft2(img2)
             # Compute the cross-correlation in frequency domain
-            cross_fft = fft1 * np.conj(fft2)
+            cross_fft = fft1 * fft2.conj()
             # Compute the inverse FFT to get the cross-correlation in spatial domain
-            cross_corr = np.fft.ifft2(cross_fft)
+            cross_corr = _ifft2(cross_fft)
             # Shift the zero-frequency component to the center of the spectrum
-            cross_corr = np.fft.fftshift(cross_corr)
-            return np.real(cross_corr)
+            cross_corr = _fftshift(cross_corr)
+            return cross_corr.real
 
         def best_shift(frame, watermark):
             # Compute the cross-correlation between frame and watermark
@@ -91,21 +131,20 @@ def remove_watermark(video):
 
         return best_shift(zavg_frame, zwatermark)
 
-    if video.dtype == np.uint8:
-        # Make it a floating point video
+    if _is_uint8(video):
         video = video / 255
 
     watermark = _get_watermark_image()
 
     avg_frame = video.mean(0)
 
-    #Make sure the watermark image is the same size as the video so we can convolve them
+    # Make sure the watermark image is the same size as the video so we can convolve them
     watermark = crop_image(watermark, *get_image_dimensions(avg_frame))
 
     best_watermark = None
 
     best_x_shift, best_y_shift = get_shifts()
-    best_watermark = np.roll(watermark, (best_y_shift, best_x_shift), axis=(0, 1))
+    best_watermark = _roll(watermark, (best_y_shift, best_x_shift), dims=(0, 1))
 
     recovered = recover_background(video, best_watermark)
 
@@ -145,9 +184,6 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
 
         analy_video = vertically_concatenated_videos(recovered, video)
 
-        # The way I restructured the code we can't label the videos with shifts anymore
-        # analy_video=labeled_images(analy_video,'dx=%i   dy=%i'%(best_x_shift,best_y_shift))
-
         fansi_print(
             "Saved video at "
             + save_video_mp4(
@@ -168,6 +204,7 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
             "bold",
         )
         display_video(analy_video)
+        
 
 if __name__ == "__main__":
     demo_remove_watermark()
