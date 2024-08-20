@@ -44,6 +44,12 @@ def _roll(x, shift, dims):
     elif is_torch_tensor(x): return torch.roll(x, shift, dims=dims)
     else: raise TypeError(f"Unsupported input type: {type(x)}")
 
+def _like(x, target):
+    if   is_numpy_array (x) and is_numpy_array (target): return x
+    elif is_torch_tensor(x) and is_torch_tensor(target): return x
+    elif is_torch_tensor(x) and is_numpy_array (target): return as_numpy_array(x)
+    elif is_numpy_array (x) and is_torch_tensor(target): return torch.tensor(x).to(target.device, target.dtype)
+    else: raise TypeError(f"Unsupported input types: {type(x)} {type(target)}")
 
 @memoized
 def _get_watermark_image():
@@ -86,8 +92,10 @@ def remove_watermark(video):
 
     def recover_background(composite_images, rgba_watermark):
         # Extract RGB and Alpha components of the watermark
-        watermark_rgb = rgba_watermark[:, :, :3]
+        watermark_rgb   = rgba_watermark[:, :, :3]
         watermark_alpha = rgba_watermark[:, :, 3:]
+        debug_comment(type(watermark_rgb))# --> Error: no signature found for builtin type <class 'torch.Tensor'>
+        debug_comment(type(watermark_alpha))# --> Error: no signature found for builtin type <class 'torch.Tensor'>
 
         # Calculate the background image using the derived formula
         # Use _clip to ensure the resulting pixel values are still in the range [0, 1]
@@ -124,8 +132,11 @@ def remove_watermark(video):
             )
             return dx, dy
 
-        zwatermark = blend_images(0.5, watermark) - 0.5  # Shape: H W C
-        zavg_frame = avg_frame - cv_gauss_blur(avg_frame, sigma=20)  # Shape: H W C
+        #This function operates entirely in numpy. Don't worry, it's very fast!
+        zavg_frame = as_numpy_array(avg_frame)
+        zwatermark = as_numpy_array(watermark)
+        zwatermark = blend_images(0.5, zwatermark) - 0.5  # Shape: H W C
+        zavg_frame = zavg_frame - cv_gauss_blur(zavg_frame, sigma=20)  # Shape: H W C
         zavg_frame = as_grayscale_image(zavg_frame)
         zwatermark = as_grayscale_image(zwatermark)
 
@@ -134,12 +145,15 @@ def remove_watermark(video):
     if _is_uint8(video):
         video = video / 255
 
-    watermark = _get_watermark_image()
-
     avg_frame = video.mean(0)
 
-    # Make sure the watermark image is the same size as the video so we can convolve them
-    watermark = crop_image(watermark, *get_image_dimensions(avg_frame))
+    watermark = _get_watermark_image()
+
+    # Make sure the watermark image is the same shape and type as the video so we can convolve them
+    h, w, _ = avg_frame.shape
+    watermark = crop_image(watermark, h, w)
+    watermark = _like(watermark, avg_frame)
+
 
     best_watermark = None
 
@@ -151,7 +165,7 @@ def remove_watermark(video):
     return recovered
 
 
-def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
+def demo_remove_watermark(input_video_glob="webvid/*.mp4", device=None):
     """Demonstrates the remove_watermark function on a set of videos.
 
     Applies remove_watermark to a set of videos specified by the given glob
@@ -161,6 +175,8 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
     Args:
         input_video_glob: A glob pattern specifying the set of videos to
             process. Defaults to 'webvid/*.mp4'.
+        device: If None, will use numpy. If a string like 'cpu' or 'cuda',
+            will use torch.
 
     Notes:
         This demo function is fast enough to run on a typical laptop CPU.
@@ -177,10 +193,20 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
         tic()
         video = load_video(video_path, use_cache=False)
         video = as_numpy_array(resize_list(video, length=60))
+        
+        if device is not None:
+            video = torch.tensor(video, device=device)
+            fansi_print("Using pytorch on device = "+repr(device), 'green','bold')
+        else:
+            fansi_print("Using numpy on device = "+repr(device), 'magenta','bold')
 
         ptoctic()
         recovered = remove_watermark(video)
         ptoc()
+
+        #For demo purposes we must convert it back to numpy arrays
+        recovered = as_numpy_array(recovered)
+        video = as_numpy_array(video)
 
         analy_video = vertically_concatenated_videos(recovered, video)
 
@@ -207,4 +233,4 @@ def demo_remove_watermark(input_video_glob="webvid/*.mp4"):
         
 
 if __name__ == "__main__":
-    demo_remove_watermark()
+    pip_import('fire').Fire(demo_remove_watermark)
