@@ -1,4 +1,5 @@
 import numpy as np
+import einops
 from rp import *
 
 try:
@@ -60,7 +61,7 @@ def _get_watermark_image():
     return watermark
 
 
-def remove_watermark(video):
+def remove_watermark(video, form='BHWC'):
     """Removes watermark from a video.
 
     Given an RGB video as a NumPy array or PyTorch tensor in BHW3 form, where B is num_frames,
@@ -72,6 +73,7 @@ def remove_watermark(video):
 
     Args:
         video: A NumPy array or PyTorch tensor representing the video frames in BHW3 format.
+        form: If you want to use videos in BCHW form (like many torch applications), use form='BCHW'. Defaults to 'BHWC'
 
     Returns:
         A NumPy array or PyTorch tensor of the same shape and type as the input video, with the
@@ -89,6 +91,13 @@ def remove_watermark(video):
         It is very fast and robust, even working on videos with the watermark
         upside-down.
     """
+
+    assert form in ['BCHW', 'BHWC']
+    if form=='BCHW':
+        video = einops.rearrange(video, 'B C H W -> B H W C')
+        recovered = remove_watermark(video, form = 'BHWC')
+        recovered = einops.rearrange(recovered, 'B H W C -> B C H W')
+        return recovered
 
     def recover_background(composite_images, rgba_watermark):
         # Extract RGB and Alpha components of the watermark
