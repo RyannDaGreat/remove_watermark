@@ -45,6 +45,11 @@ def _roll(x, shift, dims):
     elif is_torch_tensor(x): return torch.roll(x, shift, dims=dims)
     else: raise TypeError(f"Unsupported input type: {type(x)}")
 
+def _default_form(x):
+    if   is_numpy_array (x): return "THWC"
+    elif is_torch_tensor(x): return "TCHW"
+    else: raise TypeError(f"Unsupported input type: {type(x)}")
+
 def _like(x, target):
     if   is_numpy_array (x) and is_numpy_array (target): return x
     elif is_torch_tensor(x) and is_torch_tensor(target): return x
@@ -61,10 +66,10 @@ def _get_watermark_image():
     return watermark
 
 
-def remove_watermark(video, form='BHWC'):
+def remove_watermark(video, form=None):
     """Removes watermark from a video.
 
-    Given an RGB video as a NumPy array or PyTorch tensor in BHW3 form, where B is num_frames,
+    Given an RGB video as a THWC NumPy array in THWC form or TCHW PyTorch tensor, where T is num_frames,
     H and W are height and width, and 3 (channels) is for RGB. It assumes
     it's a watermarked video - matching the watermark found in watermark.exr
     (in the same folder as this python file). Currently, that watermark is
@@ -72,8 +77,9 @@ def remove_watermark(video, form='BHWC'):
     also found in the same folder as this python file.
 
     Args:
-        video: A NumPy array or PyTorch tensor representing the video frames in BHW3 format.
-        form: If you want to use videos in BCHW form (like many torch applications), use form='BCHW'. Defaults to 'BHWC'
+        video: A NumPy array or PyTorch tensor representing the video frames in THW3 format.
+        form (str, optional): If you want to use numpy videos in TCHW form or torch videos in THWC form, specify that.
+            Valid options are 'TCHW' and 'THWC'
 
     Returns:
         A NumPy array or PyTorch tensor of the same shape and type as the input video, with the
@@ -92,11 +98,13 @@ def remove_watermark(video, form='BHWC'):
         upside-down.
     """
 
-    assert form in ['BCHW', 'BHWC']
-    if form=='BCHW':
-        video = einops.rearrange(video, 'B C H W -> B H W C')
-        recovered = remove_watermark(video, form = 'BHWC')
-        recovered = einops.rearrange(recovered, 'B H W C -> B C H W')
+    if form is None:
+        form = _default_form(video)
+    assert form in ['TCHW', 'THWC']
+    if form=='TCHW':
+        video     = einops.rearrange(video,     'T C H W -> T H W C')
+        recovered = remove_watermark(video, form = 'THWC')
+        recovered = einops.rearrange(recovered, 'T H W C -> T C H W')
         return recovered
 
     def recover_background(composite_images, rgba_watermark):
