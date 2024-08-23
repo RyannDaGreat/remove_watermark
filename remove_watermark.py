@@ -111,8 +111,6 @@ def remove_watermark(video, form=None):
         # Extract RGB and Alpha components of the watermark
         watermark_rgb   = rgba_watermark[:, :, :3]
         watermark_alpha = rgba_watermark[:, :, 3:]
-        debug_comment(type(watermark_rgb))# --> Error: no signature found for builtin type <class 'torch.Tensor'>
-        debug_comment(type(watermark_alpha))# --> Error: no signature found for builtin type <class 'torch.Tensor'>
 
         # Calculate the background image using the derived formula
         # Use _clip to ensure the resulting pixel values are still in the range [0, 1]
