@@ -6,12 +6,18 @@ from rp import *
 
 @memoized
 def get_watermarks():
+    watermark_root = get_path_parent(__file__)
     watermarks = load_images(
-        [
-            "https://github.com/RyannDaGreat/Images/blob/master/test_images/envato_watermark_new.png?raw=true",
-            "https://github.com/RyannDaGreat/Images/blob/master/test_images/envato_watermark.png?raw=true",
-            "https://github.com/RyannDaGreat/Images/blob/master/test_images/videohive_watermark.png?raw=true",
-        ],
+        path_join(
+            watermark_root,
+            "watermark_extraction",
+            "extracted",
+            [
+                "envato_watermark_new.png",
+                "envato_watermark.png",
+                "videohive_watermark.png",
+            ],
+        ),
         use_cache=True,
     )
     watermarks=as_float_images(watermarks)
