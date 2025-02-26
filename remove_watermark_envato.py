@@ -1,8 +1,8 @@
-# 2024-10-30 09:08:00.926993
-# 2024-10-16 22:43:37.305517
 #Ryan Burgert 2024 - Envato Watermark Removal Demo
 from rp import *
 
+#When disabled, debug info will be printed
+SILENT=True
 
 @memoized
 def get_watermarks():
@@ -53,12 +53,15 @@ def watermark_scores(image):
     image = full_range(image)
     image-=image.mean()
 
-    display_image(image)
     scores = []
     for watermark in watermarks:
         watermark=watermark-watermark.mean()
         scores.append(cosine_similarity(watermark, image))
-    ic(scores)
+
+    if not SILENT:
+        display_image(image)
+        ic(scores)
+
     return scores
 
 
